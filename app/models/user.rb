@@ -2,6 +2,9 @@ class User
   include Mongoid::Document
   has_many :guides
   has_many :gardens
+
+  has_and_belongs_to_many :favorited_guides, class_name: 'Guide', inverse_of: nil
+
   has_one :token, dependent: :delete
   has_one :user_setting
   ## Database authenticatable
@@ -59,6 +62,14 @@ class User
 
   def user_setting
     UserSetting.find_or_create_by(user: self)
+  end
+
+  def has_filled_required_settings?
+    user_setting.location.present? && user_setting.units.present?
+  end
+
+  def favorite_crop_image_from_user_setting
+    user_setting.favorite_crop_image
   end
 
   protected

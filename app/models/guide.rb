@@ -2,6 +2,8 @@ class Guide
   include Mongoid::Document
   include Mongoid::Paperclip
   include Mongoid::Slug
+  attr_accessor :current_user_compatibility_score
+
   searchkick callbacks: :async, merge_mappings: true, mappings: {
     guide: {
       properties: {
@@ -32,6 +34,8 @@ class Guide
   belongs_to :user
   has_many :stages
 
+  field :draft, type: Boolean, default: true
+
   embeds_one :time_span, cascade_callbacks: true, as: :timed
 
   field :name
@@ -40,6 +44,8 @@ class Guide
   field :practices, type: Array
   field :completeness_score, default: 0
   field :popularity_score, default: 0
+
+  field :times_favorited, type: Integer, default: 0
 
   validates_presence_of :crop, :name
 
@@ -59,12 +65,26 @@ class Guide
 
   accepts_nested_attributes_for :time_span
 
+  def self.sorted_for_user(guides, user)
+    if user
+      guides = guides.sort_by do |guide|
+        guide.compatibility_score(user)
+        guide.current_user_compatibility_score = guide.compatibility_score(user)
+        guide.current_user_compatibility_score
+      end
+      guides.reverse
+    else
+      guides
+    end
+  end
+
+
   def owned_by?(current_user)
     !!(current_user && user == current_user)
   end
 
   def search_data
-    as_json only: [:name, :overview, :crop_id, :compatibilities]
+    as_json only: [:name, :overview, :crop_id, :draft, :compatibilities]
     # We changed this to as_json ^ because it was causing weird nesting.
     # Not sure that this should be a problem though, it's been filed:
     # https://github.com/ankane/searchkick/issues/595
@@ -73,6 +93,7 @@ class Guide
     #   name: name,
     #   overview: overview,
     #   crop_id: crop_id,
+    #   draft: draft,
     #   compatibilities: compatibilities
     # }
   end
@@ -95,38 +116,40 @@ class Guide
     return nil unless current_user
     return nil if current_user.gardens.empty?
 
+    first_garden = current_user.gardens.first
+
     # We should probably store these in the DB
     basic_needs = [{ name: 'Sun / Shade',
                      slug: 'sun-shade',
                      overlap: [],
                      total: [],
                      percent: 0,
-                     user: current_user.gardens.first.average_sun,
-                     garden: current_user.gardens.first.name
+                     user: first_garden.average_sun,
+                     garden: first_garden.name
                    }, {
                      name: 'Location',
                      slug: 'location',
                      overlap: [],
                      total: [],
                      percent: 0,
-                     user: current_user.gardens.first.type,
-                     garden: current_user.gardens.first.name
+                     user: first_garden.type,
+                     garden: first_garden.name
                    }, {
                      name: 'Soil Type',
                      slug: 'soil',
                      overlap: [],
                      total: [],
                      percent: 0,
-                     user: current_user.gardens.first.soil_type,
-                     garden: current_user.gardens.first.name
+                     user: first_garden.soil_type,
+                     garden: first_garden.name
                    }, {
                      name: 'Practices',
                      slug: 'practices',
                      overlap: [],
                      total: [],
                      percent: 0,
-                     user: current_user.gardens.first.growing_practices,
-                     garden: current_user.gardens.first.name
+                     user: first_garden.growing_practices,
+                     garden: first_garden.name
                    }]
 
     # Still have to implement:
@@ -137,6 +160,8 @@ class Guide
   end
 
   def compatibility_score(current_user)
+    return current_user_compatibility_score if current_user_compatibility_score
+
     return nil unless current_user
     return nil if current_user.gardens.empty?
 
@@ -149,9 +174,12 @@ class Guide
 
     (sum.to_f / count * 100).round
   end
-
   def compatibility_label(current_user)
-    score = compatibility_score(current_user)
+    if current_user_compatibility_score
+      score = current_user_compatibility_score
+    else
+      score = compatibility_score(current_user)
+    end
 
     if score.nil?
       return ''

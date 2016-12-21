@@ -13,7 +13,7 @@
     </div>
     <div class="row row-table row-full-height">
         <div class="small-12 small-centered column-middle columns">
-            <img class="logo" src="<%= image_path 'openfarm_logo_small.png' %>" width="420px">
+            <h1 class="text-center"><%=t 'home.call_to_action' %></h1>
             <h2 class="text-center"><%=t 'home.hero_header' %></h2>
             <a href="#how-it-works"><button class="how-it-works-button">
                 <%= t 'home.how_it_works' %>
@@ -24,21 +24,30 @@
           <!-- ^NOT A MISTAKE!! Avoiding rails helpers for cleaner URLs and Ganalytics. -->
             <div class="search-bar-container">
               <div class="search-bar" ng-app="searchApp" ng-controller="searchCtrl">
-
                 <div class="search-input-container">
                   <div crop-search
                     query="cropQuery"
                     loading-crops-text="'<%= t('crop_searches.show.loading_crops') %>'"
                     crop-on-select="goToCrop"
                     options="{  'fieldName': 'q',
-                    'buttonValue': '<%= t('home.search') %>', 'placeholder': '<%= t('home.placeholder') %>' }"
-                  ></div>
+                    'buttonValue': '<%= t('home.search') %>', 'placeholder': '<%= t('home.placeholder') %>' }">
+                  </div>
                 </div>
               </div>
             </div>
           </form>
         </div>
     </div>
+</div>
+
+<div class="survey">
+  <div class="row">
+    <h4 class="survey-heading">What kind of gardener are you?</h4>
+    <a href="https://sophiakc.typeform.com/to/VPRAoz" class="survey-button" target="_blank" rel="noopener noreferrer">
+      <img class="survey-button-img" src="<%= image_path 'farmer.png' %>" width="20px">
+      Take Our Survey
+    </a>
+  </div>
 </div>
 
 <div class="featured-crops">

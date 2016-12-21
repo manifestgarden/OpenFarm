@@ -8,7 +8,8 @@ openFarmApp.directive('stageButtons', ['$rootScope', '$location',
           processing: '=',
           stage: '=',
           nextStage: '=',
-          texts: '='
+          texts: '=',
+          hint: '='
       },
       controller: ['$scope', '$element', '$attrs',
        function ($scope, $element, $attrs){
@@ -26,23 +27,8 @@ openFarmApp.directive('stageButtons', ['$rootScope', '$location',
         $scope.cancelUrl = $attrs.cancelUrl || '/';
         $scope.backText = $attrs.backText || undefined;
 
-        var recalcHeight = function() {
-          var $viewing = $('.step:not(.ng-hide)')
-
-          var maxHeight = Math.max.apply(null, $(".step").map(function () {
-              return $(this).height();
-          }).get());
-
-          if (maxHeight < 600) {
-            maxHeight = 600;
-          }
-
-          $viewing.parent().height(maxHeight);
-        };
-
         $scope.switchToStep = function(step){
           $rootScope.step = step;
-          recalcHeight();
           $location.hash($rootScope.step);
           scrollToTop();
         };
@@ -50,7 +36,6 @@ openFarmApp.directive('stageButtons', ['$rootScope', '$location',
         $scope.goBack = function() {
           $rootScope.previousStep = $rootScope.step;
           $rootScope.step -= 1;
-          recalcHeight();
           $location.hash($rootScope.step);
           scrollToTop();
         }
@@ -64,19 +49,16 @@ openFarmApp.directive('stageButtons', ['$rootScope', '$location',
           $rootScope.step -= 1;
           $location.hash($rootScope.step);
           scrollToTop();
-          recalcHeight();
         };
 
         $scope.tunnelToNextStage = function(stage) {
           $scope.nextStage(stage);
-          recalcHeight();
           scrollToTop();
         }
 
         $scope.nextStep = function(){
           $rootScope.previousStep = $rootScope.step;
           $rootScope.step += 1;
-          recalcHeight();
           $location.hash($rootScope.step);
           scrollToTop();
         }

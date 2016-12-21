@@ -54,10 +54,12 @@ video { display: block; }
     margin-top: -150px;
   }
 
-  .logo {
-    display: block;
-    margin: 0 auto 10px auto;
-    max-width: 70%;
+  h1 {
+    color: $white;
+    font-size: 2.6rem;
+    font-weight: 800;
+    margin-bottom: 0;
+    text-shadow: 0 -1px 1px rgba(0,0,0,0.6);  
   }
 
   h2 {
@@ -107,7 +109,6 @@ video { display: block; }
       // Typeahead dropdown
       .f-dropdown {
         margin-top: 0;
-        padding-left: 0.5rem;
         text-align: left;
 
         // dropdown carrat
@@ -171,3 +172,60 @@ video { display: block; }
     z-index: 2;
   }
 }
+
+.guide-count {
+  float: right;
+  font-weight: bold;
+  line-height: 3em;
+}
+
+.crop-list-item {
+  font-size: 16px;
+}
+
+.crop-name {
+  padding-left: 1em;
+}
+
+.guide-count {
+  padding-right: 1em;
+}
+
+.crop-img {
+  height: 50px;
+  object-fit: cover;
+}
+
+.survey {
+  background-color: $gray-green;
+  padding: 1.25em 0 1.5em;
+  text-align: center;
+}
+
+.survey-heading {
+  margin-bottom: 1em;
+
+  @media #{$medium-up} {
+    display: inline-block;
+    margin-right: 2em;
+    margin-bottom: 0;
+  }
+}
+
+.survey-button {
+  color: $white;
+  background-color: $brown;
+  padding: .75em 2.25em;
+  font-size: .875em;
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: $white;
+  }
+}
+
+.survey-button-img {
+  margin-top: -2px;
+}
+

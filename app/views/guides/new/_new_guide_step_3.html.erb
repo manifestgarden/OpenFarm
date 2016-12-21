@@ -15,27 +15,23 @@
     </form>
     <!--  -->
     <!-- There has to be a better way to send all of these internationalizations to Angular JS -->
+
+    <div class="text-center"
+    ng-hide="seenStagesIntro">
+    <h2>Filling out Stage details</h2>
+    <p>This is where you can tell everyone how you like to care for your Crop during each Life Stage. Start with the <strong>Stage Overview</strong>, and then add Actions such as <em>Prune</em>, <em>Water</em>, or <em>Add Fertilizer</em>.</p>
+
+    <a class="button" ng-click="seenStagesIntro = true">
+      Sounds good!
+    </a><br/>
+    <small>Clicking that button will make this intro text disappear</small>
+  </div>
+
     <div guides-stages
       guide="newGuide"
       options="options"
-      texts="{ 'actionsHeader': '<%= t('.actions_header') %>',
-      'actionsInstructions': '<%= t('.actions_instructions') %>','addActions': '<%= t('.add_actions') %>','describeAction': '<%= t('.describe_action') %>','chooseActionPhoto': '<%= t('.choose_action_photo') %>','s3Bucket': '<%= ENV['S3_BUCKET_NAME'] %>','howLongAction': '<%= t('.how_long_action') %>',
-      'doNotSweat': '<%= t('.do_not_sweat') %>',
-      'stageOverview': '<%= t('.stage_overview') %>',
-      'chooseStagePhoto': '<%= t('application.choose_stage_photo') %>',
-      'onlyUploadWhatYouOwn': '<%= t('application.only_upload_what_you_own') %>',
-      'howLong': '<%= t('.how_long') %>',
-      'whereHappen': '<%= t('.where_does_this_stage_happen') %>',
-      'chooseMoreThanOne': '<%= t('.choose_more_than_one') %>',
-      'whatTypeOfSoil': '<%= t('.what_type_of_soil') %>',
-      'notSureSoil': '<%= t('.not_sure_about_soil_types_html') %>',
-      'howMuchLight': '<%= t('.how_much_light') %>',
-      'cancel': '<%= t('guides.new.cancel_and_go_to_home') %>',
-      'back': '<%= t('guides.new.back') %>',
-      'editNextStage': '<%= t('.edit_next_stage') %>',
-      'finishStageToContinue': '<%= t('.finish_stage_to_continue') %>',
-      'nextFinalTouches': '<%= t('.next_final_touches') %>'
-      }">
+      texts="translations"
+      >
     </div>
   </div>
 </section>

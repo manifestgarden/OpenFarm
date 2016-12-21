@@ -1,5 +1,6 @@
 openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q',
     'userService', 'gardenService', 'cropService', 'stageService', 'defaultService',
+    'alertsService',
   function showGuideCtrl($scope,
                          $http,
                          guideService,
@@ -8,13 +9,42 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
                          gardenService,
                          cropService,
                          stageService,
-                         defaultService) {
+                         defaultService,
+                         alertsService) {
     $scope.guideId = getIDFromURL('guides') || GUIDE_ID;
     $scope.userId = USER_ID || undefined;
     $scope.gardenCrop = {};
 
-    $scope.toggleEditingGuide = function() {
-      $scope.editing = !$scope.editing;
+    $scope.favoriteGuide = favoriteGuide;
+    $scope.placeGuideUpload = placeGuideUpload;
+
+    function placeGuideUpload (image){
+      $scope.guide.featured_image = {'image_url': image};
+    }
+
+    function defineFeaturedImage (image){
+      var featured_image = null;
+      if (image !== undefined &&
+          image !== null &&
+          image.image_url !== undefined &&
+          image.image_url.indexOf('baren_field') === -1){
+        featured_image = image.image_url;
+      }
+      if (featured_image !== null) {
+        return [{
+          'image_url': featured_image
+        }];
+      } else {
+        return null;
+      }
+    }
+
+    $scope.toggleEditingGuide = function(optionalSetToValue) {
+      if (optionalSetToValue === undefined) {
+        $scope.editing = !$scope.editing;
+      } else {
+        $scope.editing = optionalSetToValue;
+      }
       $scope.saved = false;
     };
 
@@ -24,24 +54,33 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
       }
     };
 
+    $scope.publish = function () {
+      $scope.guide.draft = false;
+      $scope.saveGuideChanges();
+    };
+
     $scope.saveGuideChanges = function() {
       var params = {'data':  {
         'attributes': {
           'overview': $scope.guide.overview,
           'name': $scope.guide.name,
+          'location': $scope.guide.location,
+          'draft': $scope.guide.draft,
           'practices': $scope.practices.filter(function(practice) {
                          return practice.selected === true;
                        }).map(function(practice) {
                          return practice.slug;
                        })
-          }
-        }
+          },
+          // only add the images thing if it exists eh.
+        'images': $scope.guide.featured_image ? defineFeaturedImage($scope.guide.featured_image) : null
+        },
       };
 
       guideService.updateGuideWithPromise($scope.guide.id, params)
         .then(function(response) {
 
-          $scope.toggleEditingGuide();
+          $scope.toggleEditingGuide(false);
 
         }, function(response) {
           console.log("error updating guide", response);
@@ -51,7 +90,7 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
     $scope.guideUpdate = function() {
       guideService.getGuideWithPromise($scope.guideId)
         .then($scope.setGuide);
-    }
+    };
 
     $scope.setCurrentUser = function(success, object){
       if (success){
@@ -65,6 +104,7 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
             }
           });
         });
+
         if ($scope.guide.basic_needs){
           $scope.guide.basic_needs.forEach(function(b){
             if (b.percent < 0.5){
@@ -132,27 +172,18 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
             }
           });
         }
+
+        $scope.inFavorites = false;
+        $scope.currentUser.favorited_guides.forEach(function (g) {
+          if (g.id === $scope.guide.id) {
+            $scope.inFavorites = true;
+          }
+        });
       }
     };
 
     $scope.setGuide = function(object){
-
-      // if ($scope.guide && $scope.guide.stages !== undefined) {
-      //   console.log('guide stages exist')
-      //   // We're doing this because we don't want to overwrite the
-      //   // freshly edited stages. This is pretty dark magic though,
-      //   // maybe we don't need it?
-      //   var stages = angular.copy($scope.guide.stages)
-      //   delete object.stages;
-      //   console.log(object.stages, JSON.stringify(stages))
-      //   $scope.guide = object;
-      //   $scope.guide.stages = stages;
-      // } else {
       $scope.guide = object;
-      // }
-
-
-
       if ($scope.userId){
         userService.getUser($scope.userId,
                             $scope.setCurrentUser);
@@ -163,27 +194,14 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
                             $scope.setGuideUser);
       }
 
-      $q.all([
-        defaultService.processedDetailOptions(),
-        cropService.getCropWithPromise($scope.guide.relationships.crop.data.id)
-      ]).then(function(data) {
-        $scope.options = data[0];
-        $scope.practices = data[0].multiSelectPractices;
-        $scope.practices.forEach(function(practice) {
-          if ($scope.guide.practices !== null && $scope.guide.practices.indexOf(practice.slug.toLowerCase()) > -1) {
-            practice.selected = true;
-          }
-        });
-
-        $scope.guide.crop = data[1];
-      });
+      setPractices($scope.guide.practices);
 
       $scope.$watch('guide.stages', function() {
         if ($scope.guide.stages !== undefined) {
 
           $scope.guide.stages.forEach(function(stage) {
 
-            stageService.getPictures(stage)
+            stageService.getPictures(stage.id)
               .then(function(pictures) {
 
                 stage.pictures = pictures.map(function(pic) {
@@ -211,6 +229,64 @@ openFarmApp.controller('showGuideCtrl', ['$scope', '$http', 'guideService', '$q'
         }
       });
     };
+
+    $scope.practicesList = function () {
+      if ($scope.practices) {
+        return $scope.practices.filter(function (p) { return p.selected; })
+                               .map(function (p) { return p.slug; })
+                               .join(', ');
+      }
+    };
+
+    function setPractices (guidePractices) {
+      $q.all([
+        defaultService.processedDetailOptions(),
+        cropService.getCropWithPromise($scope.guide.relationships.crop.data.id)
+      ]).then(function(data) {
+        $scope.options = data[0];
+        $scope.practices = data[0].multiSelectPractices;
+        $scope.practices.forEach(function(practice) {
+          if ($scope.guide.practices !== null && guidePractices.indexOf(practice.slug.toLowerCase()) > -1) {
+            practice.selected = true;
+          }
+        });
+
+        $scope.guide.crop = data[1];
+      });
+    }
+    function favoriteGuide (guideId) {
+      if (!$scope.currentUser){
+        alertsService.pushToAlerts(["You need to log in to mark your favorite"], 401);
+      }
+      else{
+        $scope.updatingFavoritedGuides = true;
+        var favorited_guide_ids = $scope.currentUser.favorited_guides.map(function (g) { return g.id; }) || [];
+        var index = favorited_guide_ids.indexOf(guideId);
+        if (index === -1) {
+          favorited_guide_ids.push(guideId);
+        } else {
+          favorited_guide_ids.splice(index, 1);
+        }
+
+        var params = {
+          'favorited_guide_ids': favorited_guide_ids
+        };
+
+        if ($scope.currentUser.user_setting.picture &&
+            !$scope.currentUser.user_setting.picture.deleted) {
+          params.featured_image = $scope.currentUser.user_setting.picture.image_url || null;
+        } else {
+          params.featured_image = null;
+        }
+
+        userService.updateUserWithPromise($scope.currentUser.id, params).then(function (user) {
+          $scope.updatingFavoritedGuides = false;
+          $scope.setCurrentUser(true, user);
+        }).catch(function (response, code) {
+
+        });
+      }
+    }
 
     guideService.getGuideWithPromise($scope.guideId)
       .then($scope.setGuide);

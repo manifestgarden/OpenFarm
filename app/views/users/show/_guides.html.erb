@@ -13,6 +13,9 @@
           <td>
             <%= render partial:'/guides/compatibility_circle', locals:{guide: guide} %>
             <%= link_to(guide.name, { :controller => 'guides', :action => 'show', :id => guide.id}, :class => 'action show guide-name') %>
+            <% if guide.draft %>
+               &nbsp<span class="label label-warning">Draft</span>
+            <% end %>
           </td>
           <td>
             <%= link_to(guide.crop.name, { controller: 'crops',
@@ -20,10 +23,10 @@
               id: guide.crop.id }, :class => 'action show crop-name') %>
           </td>
           <td>
-            <%= link_to(icon('edit'), { :controller => 'guides', :action => 'edit', :id => guide.id}, :class => 'action show') %>
+            <%= link_to(icon('edit') + ' ' + t('application.edit'), { :controller => 'guides', :action => 'edit', :id => guide.id}, :class => 'action show', :title => t('users.show.guides.edit_title')) %>
           </td>
           <td>
-            <%= link_to(icon('trash'), guide_path(guide), :method => 'delete', :class => 'action show', data: {confirm: "Are you sure?"}) %>
+            <%= link_to(icon('trash') + ' ' + t('application.delete'), guide_path(guide), :method => 'delete', :class => 'action show', :title => t('users.show.guides.delete_title'), data: {confirm: "Are you sure?"}) %>
           </td>
         </tr>
       <% end %>
@@ -35,6 +38,33 @@
         <% else %>
           <%= t('.you_have_not_created_a_guide') %>
         <% end %>
+      </div>
+    <% end %>
+    <% if current_user == @user && current_user.favorited_guides.length > 0 %>
+      <div>
+        <h3 ng-show="showFavoritedGuides">Your Favorited Guides</h3>
+
+        <a ng-click="showFavoritedGuides = !showFavoritedGuides"
+          ng-hide="showFavoritedGuides">View your favorited guides <%= icon('chevron-down') %></a>
+        <a ng-click="showFavoritedGuides = !showFavoritedGuides"
+          ng-show="showFavoritedGuides">Hide your favorited guides <%= icon('chevron-up') %></a>
+        <div ng-show="showFavoritedGuides">
+          <table>
+            <% @user.favorited_guides.order_by([['created_at', :desc]]).each do |guide| %>
+              <tr>
+                <td>
+                  <%= render partial:'/guides/compatibility_circle', locals:{guide: guide} %>
+                  <%= link_to(guide.name, { :controller => 'guides', :action => 'show', :id => guide.id}, :class => 'action show guide-name') %>
+                </td>
+                <td>
+                  <%= link_to(guide.crop.name, { controller: 'crops',
+                    action: 'show',
+                    id: guide.crop.id }, :class => 'action show crop-name') %>
+                </td>
+              </tr>
+            <% end %>
+          </table>
+        </div>
       </div>
     <% end %>
   </div>

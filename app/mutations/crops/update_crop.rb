@@ -12,6 +12,7 @@ module Crops
           string :name
           array :common_names
           string :binomial_name
+          string :taxon
           string :description
           string :sun_requirements
           string :sowing_method
@@ -19,6 +20,7 @@ module Crops
           integer :days_to_maturity
           integer :row_spacing
           integer :height
+          array :tags_array
         end
       end
     end

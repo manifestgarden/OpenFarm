@@ -11,6 +11,7 @@ module Users
           string :mailing_list
           string :help_list
           string :is_private
+          array :favorited_guide_ids
         end
       end
     end
@@ -29,6 +30,7 @@ module Users
     def validate
       validate_user
       validate_favorite_crop
+      validate_favorite_guides
       validate_image
     end
 
@@ -36,6 +38,7 @@ module Users
       @user = User.find(id)
       set_user_setting
       set_image
+      set_favorited_guides
       @user.update_attributes(attributes)
       @user.save
       @user
@@ -67,6 +70,32 @@ module Users
       add_error user_setting[:favorite_crop], :crop_not_found, msg
     end
 
+    def validate_favorite_guides
+      current_guide_id = ''
+      unless attributes[:favorited_guide_ids].nil?
+        @favorited_guides = []
+        attributes[:favorited_guide_ids].uniq.each do |guide_id|
+          current_guide_id = guide_id
+          guide = Guide.find(guide_id)
+          unless @favorited_guides.include? guide
+            @favorited_guides.push(guide)
+          end
+        end
+        attributes.delete 'favorited_guide_ids'
+      end
+    rescue Mongoid::Errors::DocumentNotFound => e
+      # How disappointing that Mongoid::Errors:DocumentNotFound doesn't
+      # return a reference to the ID looked for.
+      msg = "There is no guide with id #{current_guide_id}"
+      add_error 'favorited_guide_ids', :guide_not_found, msg
+    end
+
+    def set_favorited_guides
+      if @favorited_guides
+        @user.favorited_guides = @favorited_guides
+      end
+    end
+
     def validate_user
       # TODO update this to use the Policy
       if current_user.id.to_s != id.to_s
@@ -94,7 +123,7 @@ module Users
       if featured_image && featured_image != existing_url
         UserSetting.from_url(featured_image, @user.user_setting)
       end
-      unless featured_image || @user.user_setting.picture == nil
+      if featured_image.nil? && !@user.user_setting.picture.nil?
         @user.user_setting.picture.remove
       end
     end

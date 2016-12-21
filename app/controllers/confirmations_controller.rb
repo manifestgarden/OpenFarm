@@ -1,6 +1,13 @@
 class ConfirmationsController < Devise::ConfirmationsController
   def show
-    self.resource = resource_class.confirm_by_token(params[:confirmation_token])
+    token = params[:confirmation_token].encode!(
+      'UTF-8',
+      'binary',
+      invalid: :replace,
+      undef: :replace,
+      replace: ''
+    )
+    self.resource = resource_class.confirm_by_token(token)
     if resource.errors.empty?
       set_flash_message(:notice, :confirmed) if is_navigational_format?
       user = sign_in(resource_name, resource)
@@ -13,10 +20,16 @@ class ConfirmationsController < Devise::ConfirmationsController
         type: 'Outside',
         soil_type: 'Loam'
       )
-      respond_with_navigational(resource){
-        redirect_to url_for(controller: 'users',
-        action: 'finish')
-      }
+      respond_with_navigational(resource) do
+        if resource.has_filled_required_settings?
+          redirect_to url_for(controller: 'users',
+                              action: 'show',
+                              id: resource)
+        else
+          redirect_to url_for(controller: 'users',
+                              action: 'finish')
+        end
+      end
     else
       respond_with_navigational(
         resource.errors,

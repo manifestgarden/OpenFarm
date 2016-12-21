@@ -1,6 +1,7 @@
 <%= content_for(:description) do %><%= truncate(@crop.description, length: 80, separator: ' ') %><% end %>
 <%= content_for(:social_image) do %><%= image_url(@crop.main_image_path) %><% end %>
 <%= content_for(:keywords) do %><% if @crop.common_names %><%= @crop.common_names.join(', ') %><% end %>, <%= @crop.name %>, <%= @crop.binomial_name %><% end %>
+<%= content_for(:title) do %> - <%= @crop.name %><% end %>
 
 <div class="crop-page row wide-row"
      data-equalizer
@@ -23,8 +24,9 @@
         <tbody>
         <tr>
           <td colspan="2">
-          <img ng-repeat="picture in crop.pictures"
-              ng-src="{{picture.small_url}}"/>
+          <a of-lightbox-modal ng-repeat="picture in crop.pictures"
+            thumbnail-url="{{picture.small_url}}" display-url="{{picture.image_url}}">
+          </a>
           <span ng-show="processingPictures" class="still-uploading-crop-images">
             <i class="fa fa-spin fa-spinner"></i>
             processing images...
@@ -32,8 +34,16 @@
           </td>
         </tr>
         <tr>
+          <td><%= I18n.t('crops.tags') %></td>
+          <td><%= @crop.tags_array.join(', ')%></td>
+        </tr>
+        <tr>
           <td><%= I18n.t('crops.binomial_name') %></td>
           <td><%= render partial: '/crops/exists_or_edit', locals: {obj: @crop.binomial_name} %></td>
+        </tr>
+        <tr>
+          <td><%= I18n.t('crops.taxon') %></td>
+          <td><%= render partial: '/crops/exists_or_edit', locals: {obj: @crop.taxon} %></td>
         </tr>
         <tr>
           <td><%= I18n.t('crops.description') %></td>

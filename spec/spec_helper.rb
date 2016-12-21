@@ -1,11 +1,16 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 ENV["RAILS_ENV"] ||= 'test'
+
+# We provide an empty google maps api key for the tests to complete successfully.
+# We largely set this here so that tests from travisCI won't fail with this
+# variable missing.
+ENV["GOOGLE_MAPS_API_KEY"] = 'test-key'
 require 'simplecov'
 require 'coveralls'
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
   SimpleCov::Formatter::HTMLFormatter,
   Coveralls::SimpleCov::Formatter
-]
+])
 SimpleCov.start do
   add_filter 'config/initializers/rack-attack.rb'
   add_filter 'config/environment.rb'
@@ -52,13 +57,13 @@ Paperclip.options[:log] = false
 require 'database_cleaner'
 
 Capybara.javascript_driver = :poltergeist
-Capybara.default_wait_time = 10
+Capybara.default_max_wait_time = 10
 Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 Mongoid.logger.level = 2
 RSpec.configure do |config|
   config.infer_spec_type_from_file_location!
   config.include Rails.application.routes.url_helpers
-  config.include Devise::TestHelpers, type: :controller
+  config.include Devise::Test::ControllerHelpers, type: :controller
   config.include ApiHelpers, type: :controller
   config.include IntegrationHelper, type: :feature
   config.include Capybara::DSL
@@ -69,16 +74,16 @@ RSpec.configure do |config|
   config.fail_fast = false
   config.order = "random"
   if ENV['DOCS'] == 'true'
-    DocYoSelf.config do |c|
+    SmarfDoc.config do |c|
       c.template_file = 'spec/template.md.erb'
       c.output_file   = 'api_docs.md'
     end
 
     config.after(:each, type: :controller) do
-      DocYoSelf.run!(request, response) if request.url.include?('/api/')
+      SmarfDoc.run!(request, response) if request.url.include?('/api/')
     end
 
-    config.after(:suite) { DocYoSelf.finish! }
+    config.after(:suite) { SmarfDoc.finish! }
   end
   config.before :each do
     Guide.reindex
@@ -93,5 +98,5 @@ RSpec.configure do |config|
 end
 
 class ActionController::TestCase
-  include Devise::TestHelpers
+  include Devise::Test::ControllerHelpers
 end

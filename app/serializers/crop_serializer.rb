@@ -10,6 +10,10 @@ class CropSerializer < BaseSerializer
   attribute :row_spacing
   attribute :height
   attribute :processing_pictures
+  attribute :guides_count
+  attribute :main_image_path
+  attribute :taxon
+  attribute :tags_array
 
   has_many :pictures, serializer: PictureSerializer
 end

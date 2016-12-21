@@ -101,6 +101,11 @@
 
   .instructions {
     margin: 1.5rem 0;
+
+    legend {
+      max-width: 640px;
+      margin: 0 auto;
+    }
   }
 }
 
@@ -122,9 +127,19 @@
     box-shadow-color: darken($gray-bg, 20%);
   }
 
+  .fa-check {
+    color: $white;
+  }
+
   &.selected {
     background-color: darken($gray-bg, 10%);
     box-shadow-color: darken($gray-bg, 20%);
+  }
+
+  &.completed {
+    .fa-check {
+      color: $off-black;
+    }
   }
 
   i {

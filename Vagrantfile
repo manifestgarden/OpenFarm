@@ -3,6 +3,19 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
+# See: http://stackoverflow.com/a/28801317
+required_plugins = %w(vagrant-triggers)
+
+plugins_to_install = required_plugins.select { |plugin| !Vagrant.has_plugin?(plugin) }
+if plugins_to_install.any?
+  puts "Installing plugins: #{plugins_to_install.join(' ')}"
+  if system "vagrant plugin install #{plugins_to_install.join(' ')}"
+    exec "vagrant #{ARGV.join(' ')}"
+  else
+    abort "Installation of one or more plugins has failed. Aborting."
+  end
+end
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Use Ubuntu 14.04 Trusty Tahr 64-bit as our operating system
   config.vm.box = "ubuntu/trusty64"
@@ -15,6 +28,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Forward the Rails server default port to the host
   config.vm.network :forwarded_port, guest: 3000, host: 3000
+  config.vm.network :forwarded_port, guest: 9200, host: 9201
 
-  config.vm.provision :shell, path: "bootstrap.sh", privileged: false
+  config.vm.provision :shell, path: "scripts/bootstrap.sh", privileged: false
+
+  config.trigger.after :up do
+    run_remote "bash /vagrant/scripts/up.sh"
+  end
 end

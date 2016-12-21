@@ -1,14 +1,18 @@
 OpenFarm::Application.configure do
+  # This would be fixed in rails 5 or maybe even 4.2?
+  # http://stackoverflow.com/a/25428800/154392
+  config.action_dispatch.perform_deep_munge = false
   config.cache_classes = true
   config.eager_load = true
   config.consider_all_requests_local       = false
   config.action_controller.perform_caching = true
-  config.serve_static_assets = false
+  config.serve_static_files = false
   config.assets.js_compressor = :uglifier
   config.assets.compile = true
   config.assets.digest = true
   config.assets.version = '1.0'
   config.force_ssl = true
+  config.middleware.insert_before ActionDispatch::SSL, Letsencrypt::Middleware
   config.log_level = :info
   config.action_mailer.smtp_settings = {  address:   'smtp.mandrillapp.com',
                                           port:      587,

@@ -5,12 +5,30 @@ footer {
   @include transition(all .5s);
   padding: 2.5em 0;
 
+  @media #{$small-only} {
+    & {
+      height: auto;
+    }
+  }
+
   .row {
-    display: flex;
+    display: block;
+    flex-wrap: wrap;
     justify-content: space-around;
+
+    div {
+      flex-grow: 1;
+      flex-direction: column;
+      padding-right: 2.3em;
+    }
+  }
+
+  h3 {
+    color: $white;
   }
 
   a {
+    display: flex;
     $button-height: 2em;
     $line-height: 1em;
     margin-bottom: .5em;
@@ -27,6 +45,10 @@ footer {
     &:hover {
       background: rgba(255, 255, 255, .25);
       color: rgba(255, 255, 255, .75);
+    }
+
+    i {
+      margin-right: .5em;
     }
 
     &:active {

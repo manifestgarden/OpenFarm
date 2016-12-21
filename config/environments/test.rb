@@ -14,7 +14,7 @@ OpenFarm::Application.configure do
   config.eager_load = false
 
   # Configure static asset server for tests with Cache-Control for performance.
-  config.serve_static_assets  = true
+  config.serve_static_files = true
   config.static_cache_control = "public, max-age=3600"
 
   # Show full error reports and disable caching.
@@ -35,6 +35,10 @@ OpenFarm::Application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
   config.quiet_assets = true
+
+  # This would be fixed in rails 5 or maybe even 4.2?
+  # http://stackoverflow.com/a/25428800/154392
+  config.action_dispatch.perform_deep_munge = false
 
   Paperclip::Attachment.default_options.merge!(path: 'tmp/paperclip_junk/'\
                                                      ':class/:attachment/:id.'\

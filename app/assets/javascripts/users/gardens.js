@@ -7,6 +7,7 @@ openFarmApp.controller('gardenCtrl', ['$scope', '$http', '$rootScope',
                       gardenService,
                       cropService) {
     $scope.addingGarden = false;
+    $scope.addingCrop = false;
     $scope.newGarden = {};
 
     // $scope.profileUser = $rootScope.profileUser;
@@ -14,16 +15,20 @@ openFarmApp.controller('gardenCtrl', ['$scope', '$http', '$rootScope',
 
     $scope.toggleAddGarden = function() {
       $scope.addingGarden = !$scope.addingGarden;
-    }
+    };
+    $scope.toggleAddCrop = function() {
+      $scope.addingCrop = !$scope.addingCrop;
+    };
 
     $scope.$watch('profileUser', function(){
       if($rootScope.profileUser) {
+
+        console.log($rootScope.profileUser);
         gardenService.getGardensForUser($rootScope.profileUser,
           function(success, response) {
             if(success) {
-              console.log(response)
               $scope.profileUser.gardens = response;
-
+              console.log(response);
               $scope.profileUser.gardens.forEach(function(garden){
                 // set the pH if it hasn't been set.
                 if (!garden.ph){
@@ -70,7 +75,7 @@ openFarmApp.controller('gardenCtrl', ['$scope', '$http', '$rootScope',
       var callback = function(success, garden){
         if (success){
           // way easier for now
-          $scope.currentUser.gardens.push(garden);
+          // $scope.currentUser.gardens.push(garden);
           $scope.profileUser.gardens.push(garden);
           $scope.newGarden = {};
           $scope.addingGarden = false;
@@ -80,11 +85,11 @@ openFarmApp.controller('gardenCtrl', ['$scope', '$http', '$rootScope',
     };
 
     $scope.saveGarden = function(garden){
-      garden.location = garden.location === '' ? null : garden.location
-      garden.location = garden.description === '' ? null : garden.description
-      garden.location = garden.average_sun === '' ? null : garden.average_sun
-      garden.location = garden.soil_type === '' ? null : garden.soil_type
-      garden.location = garden.type === '' ? null : garden.type
+      garden.location = garden.location === '' ? null : garden.location;
+      garden.location = garden.description === '' ? null : garden.description;
+      garden.location = garden.average_sun === '' ? null : garden.average_sun;
+      garden.location = garden.soil_type === '' ? null : garden.soil_type;
+      garden.location = garden.type === '' ? null : garden.type;
       gardenService.saveGarden(garden);
     };
 
